@@ -36,7 +36,7 @@ class Train(Static):
                 yield pane
 
 class pomodoroApp(App):
-    CSS_PATH = "pomodoro.css"
+    CSS_PATH = "pomodoro.tcss"
 
     number_of_tabs = 0
 
@@ -52,7 +52,7 @@ class pomodoroApp(App):
 
         yield Header(show_clock=True)
         with TabbedContent(initial="home", id="home_tabbed_content"):
-            with TabPane("progression", id="progression"):
+            with TabPane("progression", id="progression_tab_pane"):
                 yield Button("🛖️", id="return_to_home")
             with TabPane("home", id="home"):
                 with Static(id="input_div"):
@@ -85,10 +85,12 @@ class pomodoroApp(App):
                 new_train = Train()
                 pane.mount(new_train)
                 self.show_tab_by_tabpane_id(f"{pane.id}")
+            else:
+                self.notify(message="complete all fields", severity="warning", timeout=2)
 
         elif button_id == "progression":
             print("moved to progression")
-            self.show_tab_by_tabpane_id("progression")
+            self.show_tab_by_tabpane_id("progression_tab_pane")
         elif button_id == "return_to_home":
             self.show_tab_by_tabpane_id("home")
 

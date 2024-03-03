@@ -50,3 +50,24 @@ stopwatch {
     width: 90%;
 }
 
+#train_button {
+    background: $accent;
+    margin: 1;
+    width: 20%;
+}
+
+#train_button:hover{
+    background: $accent-darken-2;
+    width: 20%;
+}
+
+#progression {
+    background: $secondary-background;
+    margin: 1;
+    width: 20%;
+}
+
+#progression:hover{
+    background: $secondary-background-darken-2;
+    width: 20%;
+}

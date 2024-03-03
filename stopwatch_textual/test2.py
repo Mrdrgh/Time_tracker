@@ -1,7 +1,7 @@
 from time import monotonic
 from textual import on
 from textual.app import App
-from textual.events import Mount
+from textual.events import Mount, Key
 from textual.reactive import reactive
 from textual.containers import ScrollableContainer
 from textual.widgets import Button, Header, Footer, Static, ProgressBar
@@ -66,11 +66,13 @@ class time_display(Static):
         self.progress_bar.progress += 1/self.fps
     def watch_time_remaining(self):
         if self.time_remaining <= 0:
-            self.notify("complete")
+            self.notify(message="exercise complete\nprogression updated", timeout=2)
             self.reset()
         self.update(f"{self.time_remaining:02.2f}")
     def start(self):
         """start the timedisplay widget of the stopwatch"""
+        if self.progress_bar.percentage == 1:
+            self.progress_bar.progress = 0
         self.update_timer.resume()
         self.update_progressbarr.resume()
     def stop(self):
@@ -93,7 +95,7 @@ class stopwatch(Static):
     @on(Button.Pressed, "#start")
     def start_stopwatch(self):
         self.add_class("starting")
-        self.notify("starting..")
+        self.notify("starting..", timeout=2)
         self.query_one(time_display).start()
 
     @on(Button.Pressed, "#stop")
