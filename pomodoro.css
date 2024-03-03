@@ -1,0 +1,42 @@
+stopwatch {
+    layout: horizontal;
+    padding: 1;
+    margin: 1;
+    background: $boost;
+    min-width: 60;
+    height: 5;
+}
+#time_d {
+    height: 3;
+    content-align: center middle;
+    text-opacity: 60%;
+}
+#start {
+    dock: left;
+    display: block;
+}
+
+#stop {
+    dock: left;
+    display: none;
+}
+
+#reset {
+    dock: right;
+}
+
+.hidden {
+    display: none;
+}
+
+.starting #start{
+    display: none;
+}
+
+.starting #stop {
+    display: block;
+}
+
+.starting #reset {
+    display: block;
+}
