@@ -67,7 +67,8 @@ class time_display(Static):
     def watch_time_remaining(self):
         if self.time_remaining <= 0:
             self.notify(message="exercise complete\nprogression updated", timeout=2)
-            self.reset()
+            self.stop()
+            self.time_remaining = self.original_time_remainning
         self.update(f"{self.time_remaining:02.2f}")
     def start(self):
         """start the timedisplay widget of the stopwatch"""
@@ -83,6 +84,7 @@ class time_display(Static):
     
     def reset(self):
         self.stop()
+        self.progress_bar.progress = 0
         self.time_remaining = self.original_time_remainning
 
         

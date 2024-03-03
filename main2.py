@@ -79,7 +79,11 @@ class pomodoroApp(App):
                 print(temp_dict)
                 self.reset_input_value()
                 tabbed_content = self.query_one("#home_tabbed_content")
-                pane = TabPane(f"set {tabbed_content.tab_count + 1}", id=f"set{tabbed_content.tab_count + 1}")
+                print(self.training_title.value)
+                if self.training_title.value != '':
+                    training_title = self.training_title
+                    pane = TabPane(f"{training_title}", id=f"train{tabbed_content.tab_count - 1}")
+                pane = TabPane(f"train {tabbed_content.tab_count - 1}", id=f"train{tabbed_content.tab_count - 1}")
                 self.number_of_tabs = tabbed_content.tab_count + 1
                 tabbed_content.add_pane(pane)
                 new_train = Train()
