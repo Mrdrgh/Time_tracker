@@ -37,6 +37,7 @@ class time_display(Static):
     
     def reset(self):
         """reset the stop watch"""
+        self.stop()
         self.time_elapsed = 0
         self.accum_time = 0
     
