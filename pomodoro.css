@@ -8,7 +8,7 @@ stopwatch {
 }
 #time_d {
     height: 3;
-    content-align: center middle;
+    content-align: center bottom;
     text-opacity: 60%;
 }
 #start {
@@ -40,3 +40,13 @@ stopwatch {
 .starting #reset {
     display: block;
 }
+
+#progress_bar {
+    width: 100%;
+    align:  center bottom;
+    height: auto;
+}
+#bar {
+    width: 90%;
+}
+

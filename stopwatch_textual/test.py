@@ -5,7 +5,7 @@ from textual.events import Mount
 from textual.reactive import reactive
 from textual.containers import ScrollableContainer
 from textual.widgets import Button, Header, Footer, Static
-
+from playsound import playsound
 
 
 class time_display(Static):

@@ -10,7 +10,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Vertical, Horizontal, Center
 from textual.widgets import TabbedContent, TabPane
 from textual.widget import Widget
-from stopwatch_textual.test import stopwatch, time_display
+from stopwatch_textual.test2 import stopwatch, time_display
 class Train(Static):
 
     def __init__(self):
@@ -19,6 +19,7 @@ class Train(Static):
         self.number_of_sets = int(pomodoroApp.input_dictionnary[-1]["nbr_sets"])
         self.rest_time_between_sets = int(pomodoroApp.input_dictionnary[-1]["rest_time_between_sets"])
         self.number_of_exercices = int(pomodoroApp.input_dictionnary[-1]["nbr_exercises"])
+        self.time_per_exercise = int(pomodoroApp.input_dictionnary[-1]["time_per_exercise"])
         self.rest_time_between_exercises = int(pomodoroApp.input_dictionnary[-1]["rest_time_between_exercises"])
 
 
@@ -28,7 +29,7 @@ class Train(Static):
             for i in range(1 , self.number_of_sets + 1):
                 pane = TabPane(f"set{i}", id="set{}".format(i))
                 for i in range(1, self.number_of_exercices + 1):
-                    exercise = stopwatch()
+                    exercise = stopwatch(self.time_per_exercise)
                     label = Label(f"exercice {i}")
                     pane.mount(label)
                     pane.mount(exercise)
@@ -45,6 +46,7 @@ class pomodoroApp(App):
         self.nbr_sets = Input(placeholder="number of sets", type="integer", id="nbr_sets")
         self.rest_time_between_sets = Input(placeholder="rest time between sets", type="number", id="rest_time_between_sets")
         self.nbr_exercises = Input(placeholder="number of exercises", type="integer", id="nbr_exercises")
+        self.time_per_exercise = Input(placeholder="time per exercise", type="integer", id="time_per_exercise")
         self.rest_time_between_exercises = Input(placeholder="rest time between exercises", type="number", id="rest_time_between_exercises")
 
 
@@ -58,6 +60,7 @@ class pomodoroApp(App):
                     yield self.nbr_sets
                     yield self.rest_time_between_sets
                     yield self.nbr_exercises
+                    yield self.time_per_exercise
                     yield self.rest_time_between_exercises
                     with Center():
                         yield Button("start_training", id="train_button")
@@ -111,17 +114,20 @@ class pomodoroApp(App):
         self.rest_time_between_sets.clear()
         self.nbr_exercises.clear()
         self.rest_time_between_exercises.clear()
+        self.time_per_exercise.clear()
 
     def load_input_value(self):
         title = self.training_title.value
         nbr_sets = self.nbr_sets.value
         rest_time_between_sets = self.rest_time_between_sets.value
         nbr_exercises = self.nbr_exercises.value
+        time_per_exercise = self.time_per_exercise.value
         rest_time_between_exercises = self.rest_time_between_exercises.value
         dict = {}
         dict["title"] = title
         dict["nbr_sets"] = nbr_sets
         dict["nbr_exercises"] = nbr_exercises
+        dict["time_per_exercise"] = time_per_exercise
         dict["rest_time_between_exercises"] = rest_time_between_exercises
         dict["rest_time_between_sets"] = rest_time_between_sets
         self.input_dictionnary.append(dict)
