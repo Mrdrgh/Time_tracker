@@ -15,36 +15,37 @@ class Train(Static):
 
     def __init__(self):
         super().__init__()
-        self.title = ""
-        self.number_of_sets = 1
-        self.rest_time_between_sets : float = 0
-        self.number_of_exercices : int = 3
-        self.rest_time_between_exercises : float = 0
+        self.title = pomodoroApp.input_dictionnary[-1]["title"]
+        self.number_of_sets = int(pomodoroApp.input_dictionnary[-1]["nbr_sets"])
+        self.rest_time_between_sets = int(pomodoroApp.input_dictionnary[-1]["rest_time_between_sets"])
+        self.number_of_exercices = int(pomodoroApp.input_dictionnary[-1]["nbr_exercises"])
+        self.rest_time_between_exercises = int(pomodoroApp.input_dictionnary[-1]["rest_time_between_exercises"])
 
 
     def compose(self):
         new_tabbed_content = TabbedContent(id=f"tabbed_content_train{pomodoroApp.number_of_tabs + 1}")
         with new_tabbed_content:
-            if self.number_of_sets:
-                for i in range(2):
-                    pane = TabPane(f"train{i}", id="train{}".format(i))
-                    for i in range(self.number_of_exercices):
-                        exercise = stopwatch()
-                        label = Label(f"exercice {i}")
-                        pane.mount(label)
-                        pane.mount(exercise)
-                    yield pane
+            for i in range(1 , self.number_of_sets + 1):
+                pane = TabPane(f"set{i}", id="set{}".format(i))
+                for i in range(1, self.number_of_exercices + 1):
+                    exercise = stopwatch()
+                    label = Label(f"exercice {i}")
+                    pane.mount(label)
+                    pane.mount(exercise)
+                yield pane
 
 class pomodoroApp(App):
     CSS_PATH = "pomodoro.css"
 
     number_of_tabs = 0
+
+    input_dictionnary = [{}]
     def compose(self):
-        self.training_title = Input(placeholder="e.g leg day")
-        self.nbr_sets = Input(placeholder="number of sets")
-        self.rest_time_between_sets = Input(placeholder="rest time between sets")
-        self.nbr_exercises = Input(placeholder="number of exercises")
-        self.rest_time_between_exercises = Input(placeholder="rest time between exercises")
+        self.training_title = Input(placeholder="e.g leg day", type="text", max_length=7, id="title")
+        self.nbr_sets = Input(placeholder="number of sets", type="integer", id="nbr_sets")
+        self.rest_time_between_sets = Input(placeholder="rest time between sets", type="number", id="rest_time_between_sets")
+        self.nbr_exercises = Input(placeholder="number of exercises", type="integer", id="nbr_exercises")
+        self.rest_time_between_exercises = Input(placeholder="rest time between exercises", type="number", id="rest_time_between_exercises")
 
 
         yield Header(show_clock=True)
@@ -68,15 +69,22 @@ class pomodoroApp(App):
         """ the handler for the pressing of a button"""
         button_id = event.button.id
         if button_id == "train_button":
-            tabbed_content = self.query_one("#home_tabbed_content")
-            pane = TabPane(f"set {tabbed_content.tab_count + 1}", id=f"set{tabbed_content.tab_count + 1}")
-            self.number_of_tabs = tabbed_content.tab_count + 1
-            tabbed_content.add_pane(pane)
-            new_train = Train()
-            pane.mount(new_train)
-            self.show_tab_by_tabpane_id(f"{pane.id}")
+            temp_dict = self.load_input_value()
+            if temp_dict is not None:
+                self.input_dictionnary.append(temp_dict)
+                print("successful")
+                print(temp_dict)
+                self.reset_input_value()
+                tabbed_content = self.query_one("#home_tabbed_content")
+                pane = TabPane(f"set {tabbed_content.tab_count + 1}", id=f"set{tabbed_content.tab_count + 1}")
+                self.number_of_tabs = tabbed_content.tab_count + 1
+                tabbed_content.add_pane(pane)
+                new_train = Train()
+                pane.mount(new_train)
+                self.show_tab_by_tabpane_id(f"{pane.id}")
 
         elif button_id == "progression":
+            print("moved to progression")
             self.show_tab_by_tabpane_id("progression")
         elif button_id == "return_to_home":
             self.show_tab_by_tabpane_id("home")
@@ -96,6 +104,34 @@ class pomodoroApp(App):
         pane = TabPane(f"set {tabbed_content.tab_count + 1}", id=pane_id)
         tabbed_content.add_pane(pane)
         return pane_id
+
+    def reset_input_value(self):
+        self.training_title.clear()
+        self.nbr_sets.clear()
+        self.rest_time_between_sets.clear()
+        self.nbr_exercises.clear()
+        self.rest_time_between_exercises.clear()
+
+    def load_input_value(self):
+        title = self.training_title.value
+        nbr_sets = self.nbr_sets.value
+        rest_time_between_sets = self.rest_time_between_sets.value
+        nbr_exercises = self.nbr_exercises.value
+        rest_time_between_exercises = self.rest_time_between_exercises.value
+        dict = {}
+        dict["title"] = title
+        dict["nbr_sets"] = nbr_sets
+        dict["nbr_exercises"] = nbr_exercises
+        dict["rest_time_between_exercises"] = rest_time_between_exercises
+        dict["rest_time_between_sets"] = rest_time_between_sets
+        self.input_dictionnary.append(dict)
+        for i in self.input_dictionnary[-1]:
+            print(i)
+            if not self.input_dictionnary[-1][i]:
+                del self.input_dictionnary[-1]
+                return None
+        return self.input_dictionnary[-1]
+
 
 
 if __name__ == "__main__":
