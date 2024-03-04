@@ -1,7 +1,8 @@
 from time import monotonic
+from typing import Coroutine
 from textual import on
 from textual.app import App
-from textual.events import Mount, Key
+from textual.events import Mount, Key, Timer
 from textual.reactive import reactive
 from textual.containers import ScrollableContainer
 from textual.widgets import Button, Header, Footer, Static, ProgressBar
@@ -45,9 +46,10 @@ class time_display(Static):
 
     time_remaining = reactive(30.0)
 
-    class ProgressCompleted(Message):
+    class AllProgressCompleted(Message):
         ...
-
+    class CurrentProgressCompleted(Message):
+        ...
     def __init__(self, time_remaining, id, fps):
         super().__init__()
         self.id = id
@@ -74,7 +76,7 @@ class time_display(Static):
         if self.id == "last_time_d":
             self.notify("set complete")
             # TODO: post a message to the parent(stopwatch)
-            self.post_message(self.ProgressCompleted())
+            self.post_message(self.AllProgressCompleted())
             print("posted message from timedisplay")
 
     def watch_time_remaining(self):
@@ -82,6 +84,7 @@ class time_display(Static):
             self.notify(message="exercise complete\nprogression updated", timeout=2)
             self.stop()
             print(self.id)
+            self.post_message(self.CurrentProgressCompleted()) #post a message that the current progress is completed
             self.handle_all_exercises_complete() 
             self.time_remaining = self.original_time_remainning
         self.update(f"{self.time_remaining:02.2f}")
@@ -139,8 +142,14 @@ class stopwatch(Static):
         else:
             yield time_display(self.time_remaining, id="last_time_d", fps=15)
 
-    def on_time_display_progress_completed(self, message: time_display.ProgressCompleted):
+    def on_time_display_current_progress_completed(self, message: time_display.CurrentProgressCompleted):
+        """so, the time display for this stop watch has completed and set you a message,
+        this, you will hide the stop button and replace it with the start button
+        """
+        self.remove_class("starting")
+    def on_time_display_all_progress_completed(self, message: time_display.AllProgressCompleted):
         """post to the parent(set, tabpane) that the progress of this stopwatch has completed"""
+        self.post_message(self.TimeDisplayComplete())
         self.remove_class("starting")
         print("posted message from stopwatch")
 
