@@ -27,14 +27,31 @@ class Train(Static):
         new_tabbed_content = TabbedContent(id=f"tabbed_content_train{pomodoroApp.number_of_tabs + 1}")
         with new_tabbed_content:
             for i in range(1 , self.number_of_sets + 1):
-                pane = TabPane(f"set{i}", id="set{}".format(i))
+                pane = TabPane(f"set {i}", id="set{}".format(i))
                 for i in range(1, self.number_of_exercices + 1):
-                    exercise = stopwatch(self.time_per_exercise)
+                    if i != self.number_of_exercices:
+                        exercise = stopwatch(self.time_per_exercise, id="exercise{}".format(i))
+                    else:
+                        exercise = stopwatch(self.time_per_exercise, id="last_exercise")
                     label = Label(f"exercice {i}")
                     pane.mount(label)
                     pane.mount(exercise)
+                    button = Button("next set", disabled=True, id="next_set{}".format(i))
+                pane.mount(Center(button))
                 yield pane
-
+    def enable_next_set_button(self):
+        self.query_one("#next_set").disabled = False
+    def handle_all_exercises_complete(self):
+        """self explanatory"""
+        list = []
+        for i in range(1, self.number_of_exercices + 1):
+            list.append(self.query_one("#exercise{}".format(i)))
+        for i in list:
+            Time_display = i.query_one(time_display)
+            if Time_display.query_one(ProgressBar).progress != 1:
+                return
+        self.notify(message="set {} complete")
+     
 class pomodoroApp(App):
     CSS_PATH = "pomodoro.tcss"
 

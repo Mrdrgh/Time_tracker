@@ -60,14 +60,24 @@ class time_display(Static):
         """on mount"""
         self.update_timer = self.set_interval(1 /self.fps, self.update_time, pause=True)
         self.update_progressbarr = self.set_interval(1 / self.fps, self.update_progressbar, pause=True)
+
     def update_time(self):
         self.time_remaining -= 1/self.fps
+
     def update_progressbar(self):
         self.progress_bar.progress += 1/self.fps
+
+    def handle_all_exercises_complete(self):
+        if self.id == "last_time_d":
+            self.notify("set complete")
+            self.parent.parent.parent.enable_next_set_buttone(self.parent.parent.parent)
+
     def watch_time_remaining(self):
         if self.time_remaining <= 0:
             self.notify(message="exercise complete\nprogression updated", timeout=2)
             self.stop()
+            print(self.id)
+            self.handle_all_exercises_complete() 
             self.time_remaining = self.original_time_remainning
         self.update(f"{self.time_remaining:02.2f}")
     def start(self):
@@ -76,6 +86,7 @@ class time_display(Static):
             self.progress_bar.progress = 0
         self.update_timer.resume()
         self.update_progressbarr.resume()
+
     def stop(self):
         """pause teh timedisplay widget""" 
         self.update_timer.pause()
@@ -91,9 +102,10 @@ class time_display(Static):
 
 
 class stopwatch(Static):
-    def __init__(self, time_remaining):
+    def __init__(self, time_remaining, id):
         super().__init__()
         self.time_remaining = time_remaining
+        self.id = id
     @on(Button.Pressed, "#start")
     def start_stopwatch(self):
         self.add_class("starting")
@@ -115,7 +127,10 @@ class stopwatch(Static):
         yield Button("Start", variant="success", id="start")
         yield Button("Stop", variant="error", id="stop")
         yield Button("Reset", id="reset")
-        yield time_display(self.time_remaining, id="time_d", fps=15)
+        if self.id != "last_exercise":
+            yield time_display(self.time_remaining, id="time_d", fps=15)
+        else:
+            yield time_display(self.time_remaining, id="last_time_d", fps=15)
 
 
 class stopwatchApp(App):

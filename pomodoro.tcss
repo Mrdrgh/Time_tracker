@@ -6,11 +6,12 @@ stopwatch {
     min-width: 60;
     height: 5;
 }
-#time_d {
+time_display {
     height: 3;
     content-align: center bottom;
     text-opacity: 60%;
 }
+
 #start {
     dock: left;
     display: block;
