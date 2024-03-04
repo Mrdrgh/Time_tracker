@@ -11,6 +11,8 @@ from textual.containers import Vertical, Horizontal, Center
 from textual.widgets import TabbedContent, TabPane
 from textual.widget import Widget
 from stopwatch_textual.test2 import stopwatch, time_display
+import webbrowser
+
 class Train(Static):
 
     def __init__(self):
@@ -85,6 +87,7 @@ class pomodoroApp(App):
         yield Header(show_clock=True)
         with TabbedContent(initial="home", id="home_tabbed_content"):
             with TabPane("progression", id="progression_tab_pane"):
+                yield Button("source code", id="source_code")
                 yield Button("🛖️", id="return_to_home")
             with TabPane("home", id="home"):
                 with Static(id="input_div"):
@@ -130,6 +133,8 @@ class pomodoroApp(App):
             self.show_tab_by_tabpane_id("progression_tab_pane")
         elif button_id == "return_to_home":
             self.show_tab_by_tabpane_id("home")
+        elif button_id == "source_code":
+            webbrowser.open("https://github.com/Mrdrgh/Time_tracker")
 
     def show_tab_by_tabpane_id(self, tabpane_id):
         """swith to a tab"""
