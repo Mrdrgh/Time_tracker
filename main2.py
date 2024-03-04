@@ -39,6 +39,9 @@ class Train(Static):
                     button = Button("next set", disabled=True, id="next_set{}".format(i))
                 pane.mount(Center(button))
                 yield pane
+    def on_stopwatch_time_display_complete(self, message: stopwatch.TimeDisplayComplete):
+        """handle when the timedisplay completes"""
+        print("will activate the next tab button")
     def enable_next_set_button(self):
         self.query_one("#next_set").disabled = False
     def handle_all_exercises_complete(self):

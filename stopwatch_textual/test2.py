@@ -5,7 +5,7 @@ from textual.events import Mount, Key
 from textual.reactive import reactive
 from textual.containers import ScrollableContainer
 from textual.widgets import Button, Header, Footer, Static, ProgressBar
-
+from textual.message import Message
 
 class time_display(Static):
     # time_elapsed = reactive(0)
@@ -45,6 +45,9 @@ class time_display(Static):
 
     time_remaining = reactive(30.0)
 
+    class ProgressCompleted(Message):
+        ...
+
     def __init__(self, time_remaining, id, fps):
         super().__init__()
         self.id = id
@@ -70,7 +73,9 @@ class time_display(Static):
     def handle_all_exercises_complete(self):
         if self.id == "last_time_d":
             self.notify("set complete")
-            self.parent.parent.parent.enable_next_set_buttone(self.parent.parent.parent)
+            # TODO: post a message to the parent(stopwatch)
+            self.post_message(self.ProgressCompleted())
+            print("posted message from timedisplay")
 
     def watch_time_remaining(self):
         if self.time_remaining <= 0:
@@ -122,6 +127,8 @@ class stopwatch(Static):
         self.remove_class("starting")
         self.query_one(time_display).reset()
 
+    class TimeDisplayComplete(Message):
+        ...
 
     def compose(self):
         yield Button("Start", variant="success", id="start")
@@ -132,6 +139,10 @@ class stopwatch(Static):
         else:
             yield time_display(self.time_remaining, id="last_time_d", fps=15)
 
+    def on_time_display_progress_completed(self, message: time_display.ProgressCompleted):
+        """post to the parent(set, tabpane) that the progress of this stopwatch has completed"""
+        self.remove_class("starting")
+        print("posted message from stopwatch")
 
 class stopwatchApp(App):
     BINDINGS = [
