@@ -42,7 +42,6 @@ class Train(Static):
                 else:
                     button = Button("next set", id="next_set", classes="hidden")
 
-                print("button id here : ", end="")
                 print("i value: {}".format(i))
                 print(button.id)
                 pane.mount(Center(button))
@@ -74,6 +73,7 @@ class pomodoroApp(App):
     number_of_tabs = 0
 
     input_dictionnary = [{}]
+
     def compose(self):
         self.training_title = Input(placeholder="e.g leg day", type="text", max_length=7, id="title")
         self.nbr_sets = Input(placeholder="number of sets", type="integer", id="nbr_sets")
@@ -81,7 +81,6 @@ class pomodoroApp(App):
         self.nbr_exercises = Input(placeholder="number of exercises", type="integer", id="nbr_exercises")
         self.time_per_exercise = Input(placeholder="time per exercise", type="integer", id="time_per_exercise")
         self.rest_time_between_exercises = Input(placeholder="rest time between exercises", type="number", id="rest_time_between_exercises")
-
 
         yield Header(show_clock=True)
         with TabbedContent(initial="home", id="home_tabbed_content"):
@@ -112,11 +111,12 @@ class pomodoroApp(App):
                 print(temp_dict)
                 self.reset_input_value()
                 tabbed_content = self.query_one("#home_tabbed_content")
-                print(self.training_title.value)
+                print("training title value {}".format(self.title))
                 if self.training_title.value != '':
+                    print("GOT HEREEE")
                     training_title = self.training_title
                     pane = TabPane(f"{training_title}", id=f"train{tabbed_content.tab_count - 1}")
-                pane = TabPane(f"train {tabbed_content.tab_count - 1}", id=f"train{tabbed_content.tab_count - 1}")
+                pane = TabPane(f"{self.title}", id=f"train{tabbed_content.tab_count - 1}")
                 self.number_of_tabs = tabbed_content.tab_count + 1
                 tabbed_content.add_pane(pane)
                 new_train = Train()
@@ -156,14 +156,15 @@ class pomodoroApp(App):
         self.time_per_exercise.clear()
 
     def load_input_value(self):
-        title = self.training_title.value
+        self.title = self.training_title.value
+        print("title value in load input value: {}".format(self.title))
         nbr_sets = self.nbr_sets.value
         rest_time_between_sets = self.rest_time_between_sets.value
         nbr_exercises = self.nbr_exercises.value
         time_per_exercise = self.time_per_exercise.value
         rest_time_between_exercises = self.rest_time_between_exercises.value
         dict = {}
-        dict["title"] = title
+        dict["title"] = self.title
         dict["nbr_sets"] = nbr_sets
         dict["nbr_exercises"] = nbr_exercises
         dict["time_per_exercise"] = time_per_exercise
