@@ -47,15 +47,20 @@ class time_display(Static):
     time_remaining = reactive(30.0)
 
     class AllProgressCompleted(Message):
-        ...
+        def __init__(self, set_id) -> None:
+            super().__init__()
+            self.set_id = set_id
+    
     class CurrentProgressCompleted(Message):
         ...
+
     def __init__(self, time_remaining, id, fps):
         super().__init__()
         self.id = id
         self.original_time_remainning = time_remaining
         self.time_remaining = time_remaining
         self.fps = fps
+
 
     def compose(self):
         self.progress_bar = ProgressBar(total=self.original_time_remainning - 1 / self.fps, show_percentage=True, show_eta=False, id="progress_bar")
@@ -72,11 +77,12 @@ class time_display(Static):
     def update_progressbar(self):
         self.progress_bar.progress += 1/self.fps
 
+
     def handle_all_exercises_complete(self):
         if self.id == "last_time_d":
             self.notify("set complete")
             # TODO: post a message to the parent(stopwatch)
-            self.post_message(self.AllProgressCompleted())
+            self.post_message(self.AllProgressCompleted(self.parent.parent.id))
             print("posted message from timedisplay")
 
     def watch_time_remaining(self):

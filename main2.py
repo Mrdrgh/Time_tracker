@@ -24,36 +24,49 @@ class Train(Static):
 
 
     def compose(self):
-        new_tabbed_content = TabbedContent(id=f"tabbed_content_train{pomodoroApp.number_of_tabs + 1}")
-        with new_tabbed_content:
+        self.new_tabbed_content = TabbedContent(id=f"tabbed_content_train{pomodoroApp.number_of_tabs + 1}")
+        with self.new_tabbed_content:
             for i in range(1 , self.number_of_sets + 1):
                 pane = TabPane(f"set {i}", id="set{}".format(i))
-                for i in range(1, self.number_of_exercices + 1):
-                    if i != self.number_of_exercices:
-                        exercise = stopwatch(self.time_per_exercise, id="exercise{}".format(i))
+                for j in range(1, self.number_of_exercices + 1):
+                    if j != self.number_of_exercices:
+                        exercise = stopwatch(self.time_per_exercise, id="exercise{}".format(j))
                     else:
                         exercise = stopwatch(self.time_per_exercise, id="last_exercise")
-                    label = Label(f"exercice {i}")
+                    label = Label(f"exercice {j}")
                     pane.mount(label)
                     pane.mount(exercise)
-                    self.button = Button("next set", id="next_set{}".format(i), classes="hidden")
-                pane.mount(Center(self.button))
+                
+                if i == self.number_of_sets:
+                    button = Button("return to home", id="return_to_home", classes="hidden")
+                else:
+                    button = Button("next set", id="next_set", classes="hidden")
+
+                print("button id here : ", end="")
+                print("i value: {}".format(i))
+                print(button.id)
+                pane.mount(Center(button))
                 yield pane
-    def on_stopwatch_time_display_complete(self, message: stopwatch.TimeDisplayComplete):
+    def on_time_display_all_progress_completed(self, message: time_display.AllProgressCompleted):
         """handle when the timedisplay completes"""
         print("will activate the next tab button")
-        self.button.remove_class("hidden")
+        set_id = message.set_id
+        print("value of the set id is {}".format(message.set_id))
+        if self.extract_integers(set_id) != self.number_of_sets:
+            self.query_one("#{}".format(message.set_id)).query_one("#next_set").remove_class("hidden")
+        else:
+            self.query_one("#{}".format(message.set_id)).query_one("#return_to_home").remove_class("hidden")
+    
 
-    def handle_all_exercises_complete(self):
-        """self explanatory"""
-        list = []
-        for i in range(1, self.number_of_exercices + 1):
-            list.append(self.query_one("#exercise{}".format(i)))
-        for i in list:
-            Time_display = i.query_one(time_display)
-            if Time_display.query_one(ProgressBar).progress != 1:
-                return
-        self.notify(message="set {} complete")
+    def extract_integers(self, string):
+        import re
+        integers = re.findall(r'\d+', string)
+        return int("".join([i for i in integers]))
+
+    def on_button_pressed(self, event: Button.Pressed):
+        button_id = event.button.id
+        if button_id == "return_to_home":
+            pomodoro.show_tab_by_tabpane_id("home")
      
 class pomodoroApp(App):
     CSS_PATH = "pomodoro.tcss"
