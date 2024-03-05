@@ -48,6 +48,7 @@ class Train(Static):
                 print(button.id)
                 pane.mount(Center(button))
                 yield pane
+
     def on_time_display_all_progress_completed(self, message: time_display.AllProgressCompleted):
         """handle when the timedisplay completes"""
         print("will activate the next tab button")
@@ -101,7 +102,10 @@ class pomodoroApp(App):
                         yield Button("start_training", id="train_button")
                         yield Button("progression", id="progression")
 
-
+    def on_time_display_current_progress_completed(self, message: time_display.CurrentProgressCompleted):
+        """bell a sound when the progress of a time_display is completed"""
+        # TODO: make a better sound, this sucks
+        self.bell()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """ the handler for the pressing of a button"""
