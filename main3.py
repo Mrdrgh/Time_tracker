@@ -27,26 +27,27 @@ class TrainScreen(Screen):
         self.rest_time_between_exercises = int(pomodoroApp.input_dictionnary[-1]["rest_time_between_exercises"])
 
     def compose(self):
-        for i in range(1 , self.number_of_sets + 1):
-                    pane = TabPane(f"set {i}", id="set{}".format(i))
-                    for j in range(1, self.number_of_exercices + 1):
-                        if j != self.number_of_exercices:
-                            exercise = stopwatch(self.time_per_exercise, id="exercise{}".format(j))
+        with TabbedContent():
+            for i in range(1 , self.number_of_sets + 1):
+                        pane = TabPane(f"set {i}", id="set{}".format(i))
+                        for j in range(1, self.number_of_exercices + 1):
+                            if j != self.number_of_exercices:
+                                exercise = stopwatch(self.time_per_exercise, id="exercise{}".format(j))
+                            else:
+                                exercise = stopwatch(self.time_per_exercise, id="last_exercise")
+                            label = Label(f"exercice {j}")
+                            pane.mount(label)
+                            pane.mount(exercise)
+                        
+                        if i == self.number_of_sets:
+                            button = Button("return to home", id="return_to_home", classes="hidden")
                         else:
-                            exercise = stopwatch(self.time_per_exercise, id="last_exercise")
-                        label = Label(f"exercice {j}")
-                        pane.mount(label)
-                        pane.mount(exercise)
-                    
-                    if i == self.number_of_sets:
-                        button = Button("return to home", id="return_to_home", classes="hidden")
-                    else:
-                        button = Button("next set", id="next_set", classes="hidden")
+                            button = Button("next set", id="next_set", classes="hidden")
 
-                    print("i value: {}".format(i))
-                    print(button.id)
-                    pane.mount(Center(button))
-                    yield pane
+                        print("i value: {}".format(i))
+                        print(button.id)
+                        pane.mount(Center(button))
+                        yield pane
 
     def on_time_display_all_progress_completed(self, message: time_display.AllProgressCompleted):
         """handle when the timedisplay completes"""
@@ -79,7 +80,7 @@ class TrainScreen(Screen):
     def on_button_pressed(self, event: Button.Pressed):
         button_id = event.button.id
         if button_id == "return_to_home":
-            pomodoroApp.pop_screen()
+            pomodoroApp.pop_screen(self=pomodoro)
 
 
 class Train(Static):
@@ -196,21 +197,10 @@ class pomodoroApp(App):
             temp_dict = self.load_input_value() #temporary dictionnary for the user_input
             if temp_dict is not None:
                 self.input_dictionnary.append(temp_dict)
-                print("successful")
-                print(temp_dict)
+
                 self.reset_input_value()
-                tabbed_content = self.query_one("#home_tabbed_content")
-                print("training title value {}".format(self.title))
-                if self.training_title.value != '':
-                    print("GOT HEREEE") # debugging purposes :)
-                    training_title = self.training_title
-                    pane = TabPane(f"{training_title}", id=f"train{tabbed_content.tab_count - 1}")
-                pane = TabPane(f"{self.title}", id=f"train{tabbed_content.tab_count - 1}")
-                self.number_of_tabs = tabbed_content.tab_count + 1
-                tabbed_content.add_pane(pane)
-                new_train = Train()
-                pane.mount(new_train)
-                self.show_tab_by_tabpane_id(f"{pane.id}")
+                new_screen = TrainScreen()
+                self.push_screen(new_screen)
             else:
                 self.notify(message="complete all fields", severity="warning", timeout=2)
 
