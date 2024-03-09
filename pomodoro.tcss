@@ -75,3 +75,14 @@ time_display {
     background: $secondary-background-darken-2;
     width: 20%;
 }
+
+#progression_misc {
+    layout: horizontal;
+    margin: 1;
+}
+
+#progression_misc * {
+    padding: 1;
+    margin: 1;
+    width: 25%;
+}

@@ -8,7 +8,7 @@ from textual.widgets import Button, Header, Footer, Static
 from textual.widgets import Input, Label, ProgressBar
 from textual.app import App, ComposeResult
 from textual.containers import Vertical, Horizontal, Center
-from textual.widgets import TabbedContent, TabPane
+from textual.widgets import TabbedContent, TabPane, DataTable
 from textual.widget import Widget
 from stopwatch_textual.test2 import stopwatch, time_display
 import webbrowser
@@ -26,8 +26,7 @@ class Train(Static):
 
 
     def compose(self):
-        self.new_tabbed_content = TabbedContent(id=f"tabbed_content_train{pomodoroApp.number_of_tabs + 1}")
-        with self.new_tabbed_content:
+        with TabbedContent(id=f"tabbed_content_train{pomodoroApp.number_of_tabs + 1}"):
             for i in range(1 , self.number_of_sets + 1):
                 pane = TabPane(f"set {i}", id="set{}".format(i))
                 for j in range(1, self.number_of_exercices + 1):
@@ -59,7 +58,19 @@ class Train(Static):
         else:
             self.query_one("#{}".format(message.set_id)).query_one("#return_to_home").remove_class("hidden")
     
-
+    def on_time_display_current_progress_completed(self, message: time_display.CurrentProgressCompleted):
+        """handle when a time display completes its progression
+        Args:
+            message: the message posted by the time_display class for this special case
+        """
+        exercise_id = message.exercicse_id
+        if exercise_id != "last_exercise":
+            next_exercise = "exercise{}".format(self.extract_integers(exercise_id) + 1)
+            try:
+                self.query_one(f"#{message.set_id}").query_one("#{}".format(next_exercise), stopwatch).start_stopwatch()
+            except Exception:
+                self.query_one(f"#{message.set_id}").query_one("#last_exercise", stopwatch).start_stopwatch()
+    
     def extract_integers(self, string):
         import re
         integers = re.findall(r'\d+', string)
@@ -72,9 +83,8 @@ class Train(Static):
      
 class pomodoroApp(App):
     CSS_PATH = "pomodoro.tcss"
-
+    Progression_cols = ["day", "training title", "sets trained", "exercises trained"]
     number_of_tabs = 0
-
     input_dictionnary = [{}]
 
     def compose(self):
@@ -88,8 +98,11 @@ class pomodoroApp(App):
         yield Header(show_clock=True)
         with TabbedContent(initial="home", id="home_tabbed_content"):
             with TabPane("progression", id="progression_tab_pane"):
-                yield Button("source code", id="source_code")
-                yield Button("🛖️", id="return_to_home")
+                with Static(id="progression_misc"):
+                    yield Button("source code", id="source_code")
+                    yield Button("Home", id="return_to_home")
+                with Static(id="progression_data"):
+                    yield DataTable(id="progression_table")
             with TabPane("home", id="home"):
                 with Static(id="input_div"):
                     yield self.training_title
@@ -104,14 +117,14 @@ class pomodoroApp(App):
 
     def on_time_display_current_progress_completed(self, message: time_display.CurrentProgressCompleted):
         """bell a sound when the progress of a time_display is completed"""
-        # TODO: make a better sound, this sucks
+        # TODO: make a better sound, this one sucks
         self.bell()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """ the handler for the pressing of a button"""
         button_id = event.button.id
         if button_id == "train_button":
-            temp_dict = self.load_input_value()
+            temp_dict = self.load_input_value() #temporary dictionnary for the user_input
             if temp_dict is not None:
                 self.input_dictionnary.append(temp_dict)
                 print("successful")
@@ -120,7 +133,7 @@ class pomodoroApp(App):
                 tabbed_content = self.query_one("#home_tabbed_content")
                 print("training title value {}".format(self.title))
                 if self.training_title.value != '':
-                    print("GOT HEREEE")
+                    print("GOT HEREEE") # debugging purposes :)
                     training_title = self.training_title
                     pane = TabPane(f"{training_title}", id=f"train{tabbed_content.tab_count - 1}")
                 pane = TabPane(f"{self.title}", id=f"train{tabbed_content.tab_count - 1}")
@@ -166,7 +179,7 @@ class pomodoroApp(App):
 
     def load_input_value(self):
         self.title = self.training_title.value
-        print("title value in load input value: {}".format(self.title))
+        print("title value in load input value: {}".format(self.title)) # debugg
         nbr_sets = self.nbr_sets.value
         rest_time_between_sets = self.rest_time_between_sets.value
         nbr_exercises = self.nbr_exercises.value

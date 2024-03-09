@@ -52,6 +52,11 @@ class time_display(Static):
             self.set_id = set_id
     
     class CurrentProgressCompleted(Message):
+        def __init__(self, exercise_id, set_id, tabbed_content_id) -> None:
+            super().__init__()
+            self.exercicse_id = exercise_id
+            self.set_id = set_id
+            self.tabbed_content_id = tabbed_content_id
         ...
 
     def __init__(self, time_remaining, id, fps):
@@ -90,7 +95,10 @@ class time_display(Static):
             self.notify(message="exercise complete\nprogression updated", timeout=2)
             self.stop()
             print(self.id)
-            self.post_message(self.CurrentProgressCompleted()) #post a message that the current progress is completed
+            self.post_message(self.CurrentProgressCompleted(self.parent.id,
+                                                            self.parent.parent.id,
+                                                            self.parent.parent.parent.parent.id)) #post a message that the current progress is completed
+            print(self.parent.id)
             self.handle_all_exercises_complete() 
             self.time_remaining = self.original_time_remainning
         self.update(f"{self.time_remaining:02.2f}")
@@ -120,18 +128,25 @@ class stopwatch(Static):
         super().__init__()
         self.time_remaining = time_remaining
         self.id = id
-    @on(Button.Pressed, "#start")
+    
+    def on_button_pressed(self, event: Button.Pressed):
+        button_id = event.button.id
+        if button_id == "start":
+            self.start_stopwatch()
+        elif button_id == "stop":
+            self.stop_stopwatch()
+        elif button_id == "reset":
+            self.reset_stopwatch()
+
     def start_stopwatch(self):
         self.add_class("starting")
         self.notify("starting..", timeout=2)
         self.query_one(time_display).start()
 
-    @on(Button.Pressed, "#stop")
     def stop_stopwatch(self):
         self.remove_class("starting")
         self.query_one(time_display).stop()
 
-    @on(Button.Pressed, "#reset")
     def reset_stopwatch(self):
         self.remove_class("starting")
         self.query_one(time_display).reset()
@@ -144,15 +159,16 @@ class stopwatch(Static):
         yield Button("Stop", variant="error", id="stop")
         yield Button("Reset", id="reset")
         if self.id != "last_exercise":
-            yield time_display(self.time_remaining, id="time_d", fps=15)
+            yield time_display(self.time_remaining, id="time_d", fps=20)
         else:
-            yield time_display(self.time_remaining, id="last_time_d", fps=15)
+            yield time_display(self.time_remaining, id="last_time_d", fps=20)
 
     def on_time_display_current_progress_completed(self, message: time_display.CurrentProgressCompleted):
-        """so, the time display for this stop watch has completed and set you a message,
-        this, you will hide the stop button and replace it with the start button
+        """so, the time display for this stop watch has completed and sent you a message,
+        thus, you will hide the stop button and replace it with the start button
         """
         self.remove_class("starting")
+
     def on_time_display_all_progress_completed(self, message: time_display.AllProgressCompleted):
         """post to the parent(set, tabpane) that the progress of this stopwatch has completed"""
         self.post_message(self.TimeDisplayComplete())
