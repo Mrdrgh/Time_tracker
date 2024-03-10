@@ -157,6 +157,13 @@ class TrainScreen(Screen):
         button_id = event.button.id
         if button_id == "return_to_home":
             pomodoroApp.pop_screen(self=pomodoro)
+        elif button_id == "next_set":
+            set_id = event.button.parent.parent.id
+            self.switch_to_tabpane_by_id(f"set{self.extract_integers(set_id) + 1}")
+
+    def switch_to_tabpane_by_id(self, id):
+        """switches to a tab pane by id"""
+        self.query_one(TabbedContent).active = id
 
 
 
@@ -177,8 +184,8 @@ class pomodoroApp(App):
 
         yield Header(show_clock=True)
         with TabbedContent(initial="home", id="home_tabbed_content"):
-            with TabPane("progression", id="progression_tab_pane"):
-                with Static(id="progression_misc"):
+            with TabPane("about", id="about"):
+                with Center(id="about_misc"):
                     yield Button("source code", id="source_code")
                     yield Button("Home", id="return_to_home")
                 with Static(id="progression_data"):
@@ -194,6 +201,7 @@ class pomodoroApp(App):
                     with Center():
                         yield Button("start_training", id="train_button")
                         yield Button("progression", id="progression")
+                        yield Button("about", id="about_button")
 
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -210,9 +218,8 @@ class pomodoroApp(App):
             else:
                 self.notify(message="complete all fields", severity="warning", timeout=2)
 
-        elif button_id == "progression":
-            print("moved to progression")
-            self.show_tab_by_tabpane_id("progression_tab_pane")
+        elif button_id == "about_button":
+            self.show_tab_by_tabpane_id("about")
         elif button_id == "return_to_home":
             self.show_tab_by_tabpane_id("home")
         elif button_id == "source_code":

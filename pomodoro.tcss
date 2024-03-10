@@ -55,13 +55,13 @@ time_display {
 }
 
 #train_button {
-    background: $accent;
+    background: $success;
     margin: 1;
     width: 20%;
 }
 
 #train_button:hover{
-    background: $accent-darken-2;
+    background: $success-darken-2;
     width: 20%;
 }
 
@@ -76,12 +76,23 @@ time_display {
     width: 20%;
 }
 
-#progression_misc {
+#about_button {
+    background: $primary;
+    margin: 1;
+    width: 20%;
+}
+
+#about_button:hover{
+    background: $primary-darken-2;
+    width: 20%;
+}
+
+#about_misc {
     layout: horizontal;
     margin: 1;
 }
 
-#progression_misc * {
+#about_misc * {
     padding: 1;
     margin: 1;
     width: 25%;
