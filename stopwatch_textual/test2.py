@@ -140,7 +140,6 @@ class stopwatch(Static):
 
     def start_stopwatch(self):
         self.add_class("starting")
-        self.notify("starting..", timeout=2)
         self.query_one(time_display).start()
 
     def stop_stopwatch(self):

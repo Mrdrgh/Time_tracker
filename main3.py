@@ -11,12 +11,76 @@ from textual.containers import Vertical, Horizontal, Center
 from textual.widgets import TabbedContent, TabPane, DataTable
 from textual.widget import Widget
 from textual.screen import Screen
+from textual.message import Message
 from stopwatch_textual.test2 import stopwatch, time_display
 import webbrowser
+import pyglet
+
+
+class Waiting(Static):
+
+    time_remaining = reactive(30.0)
+
+
+    
+    class RestComplete(Message):
+        def __init__(self, waiting_id, set_id) -> None:
+            super().__init__()
+            self.waiting_id = waiting_id
+            self.set_id = set_id
+
+
+    def __init__(self, time_remaining, id, fps):
+        super().__init__()
+        self.id = id
+        self.original_time_remainning = time_remaining
+        self.time_remaining = time_remaining
+        self.fps = fps
+
+
+    def compose(self):
+        self.progress_bar = ProgressBar(total=self.original_time_remainning - 1 / self.fps, show_percentage=True, show_eta=False, id="progress_bar")
+        yield self.progress_bar
+    
+    def on_mount(self):
+        """on mount"""
+        self.update_timer = self.set_interval(1 /self.fps, self.update_time, pause=True)
+        self.update_progressbarr = self.set_interval(1 / self.fps, self.update_progressbar, pause=True)
+
+    def update_time(self):
+        self.time_remaining -= 1/self.fps
+
+    def update_progressbar(self):
+        self.progress_bar.progress += 1/self.fps
+
+    def watch_time_remaining(self):
+        if self.time_remaining <= 0:
+            self.stop()
+            self.post_message(self.RestComplete(self.id, self.parent.id))
+            self.time_remaining = self.original_time_remainning
+        self.update(f"{self.time_remaining:02.2f}")
+
+    def start(self):
+        """start the timedisplay widget of the stopwatch"""
+        if self.progress_bar.percentage == 1:
+            self.progress_bar.progress = 0
+        self.update_timer.resume()
+        self.update_progressbarr.resume()
+
+    def stop(self):
+        """pause teh timedisplay widget""" 
+        self.update_timer.pause()
+        self.update_progressbarr.pause()
+        print(self.progress_bar.progress)
+    
+    def reset(self):
+        self.stop()
+        self.progress_bar.progress = 0
+        self.time_remaining = self.original_time_remainning
 
 
 class TrainScreen(Screen):
-
+    BINDINGS = [("q", "quit", "Quit training")]
     def __init__(self):
         super().__init__()
         self.title = pomodoroApp.input_dictionnary[-1]["title"]
@@ -27,6 +91,7 @@ class TrainScreen(Screen):
         self.rest_time_between_exercises = int(pomodoroApp.input_dictionnary[-1]["rest_time_between_exercises"])
 
     def compose(self):
+        yield Footer()
         with TabbedContent():
             for i in range(1 , self.number_of_sets + 1):
                         pane = TabPane(f"set {i}", id="set{}".format(i))
@@ -36,8 +101,10 @@ class TrainScreen(Screen):
                             else:
                                 exercise = stopwatch(self.time_per_exercise, id="last_exercise")
                             label = Label(f"exercice {j}")
-                            pane.mount(label)
+                            pane.mount(Center(label))
                             pane.mount(exercise)
+                            if j != self.number_of_exercices:
+                                pane.mount(Waiting(time_remaining=self.rest_time_between_exercises, id=f"waiting{j}", fps=20))
                         
                         if i == self.number_of_sets:
                             button = Button("return to home", id="return_to_home", classes="hidden")
@@ -49,6 +116,9 @@ class TrainScreen(Screen):
                         pane.mount(Center(button))
                         yield pane
 
+    def action_quit(self):
+        pomodoroApp.pop_screen(self=pomodoro)
+
     def on_time_display_all_progress_completed(self, message: time_display.AllProgressCompleted):
         """handle when the timedisplay completes"""
         print("will activate the next tab button")
@@ -64,14 +134,20 @@ class TrainScreen(Screen):
         Args:
             message: the message posted by the time_display class for this special case
         """
+        sound = pyglet.resource.media('start.wav')
+        sound.play()
+
         exercise_id = message.exercicse_id
         if exercise_id != "last_exercise":
-            next_exercise = "exercise{}".format(self.extract_integers(exercise_id) + 1)
-            try:
-                self.query_one(f"#{message.set_id}").query_one("#{}".format(next_exercise), stopwatch).start_stopwatch()
-            except Exception:
-                self.query_one(f"#{message.set_id}").query_one("#last_exercise", stopwatch).start_stopwatch()
-    
+            self.query_one(f"#{message.set_id}").query_one(f"#waiting{self.extract_integers(exercise_id)}", Waiting).start()
+
+    def on_waiting_rest_complete(self, message: Waiting.RestComplete):
+        waiting_id = message.waiting_id
+        try:
+            self.query_one(f"#{message.set_id}").query_one(f"#exercise{self.extract_integers(waiting_id) + 1}", stopwatch).start_stopwatch()
+        except Exception:
+            self.query_one(f"#{message.set_id}").query_one(f"#last_exercise", stopwatch).start_stopwatch()
+
     def extract_integers(self, string):
         import re
         integers = re.findall(r'\d+', string)
@@ -83,74 +159,8 @@ class TrainScreen(Screen):
             pomodoroApp.pop_screen(self=pomodoro)
 
 
-class Train(Static):
-
-    def __init__(self):
-        super().__init__()
-        self.title = pomodoroApp.input_dictionnary[-1]["title"]
-        self.number_of_sets = int(pomodoroApp.input_dictionnary[-1]["nbr_sets"])
-        self.rest_time_between_sets = int(pomodoroApp.input_dictionnary[-1]["rest_time_between_sets"])
-        self.number_of_exercices = int(pomodoroApp.input_dictionnary[-1]["nbr_exercises"])
-        self.time_per_exercise = int(pomodoroApp.input_dictionnary[-1]["time_per_exercise"])
-        self.rest_time_between_exercises = int(pomodoroApp.input_dictionnary[-1]["rest_time_between_exercises"])
 
 
-    def compose(self):
-        with TabbedContent(id=f"tabbed_content_train{pomodoroApp.number_of_tabs + 1}"):
-            for i in range(1 , self.number_of_sets + 1):
-                pane = TabPane(f"set {i}", id="set{}".format(i))
-                for j in range(1, self.number_of_exercices + 1):
-                    if j != self.number_of_exercices:
-                        exercise = stopwatch(self.time_per_exercise, id="exercise{}".format(j))
-                    else:
-                        exercise = stopwatch(self.time_per_exercise, id="last_exercise")
-                    label = Label(f"exercice {j}")
-                    pane.mount(label)
-                    pane.mount(exercise)
-                
-                if i == self.number_of_sets:
-                    button = Button("return to home", id="return_to_home", classes="hidden")
-                else:
-                    button = Button("next set", id="next_set", classes="hidden")
-
-                print("i value: {}".format(i))
-                print(button.id)
-                pane.mount(Center(button))
-                yield pane
-
-    def on_time_display_all_progress_completed(self, message: time_display.AllProgressCompleted):
-        """handle when the timedisplay completes"""
-        print("will activate the next tab button")
-        set_id = message.set_id
-        print("value of the set id is {}".format(message.set_id))
-        if self.extract_integers(set_id) != self.number_of_sets:
-            self.query_one("#{}".format(message.set_id)).query_one("#next_set").remove_class("hidden")
-        else:
-            self.query_one("#{}".format(message.set_id)).query_one("#return_to_home").remove_class("hidden")
-    
-    def on_time_display_current_progress_completed(self, message: time_display.CurrentProgressCompleted):
-        """handle when a time display completes its progression
-        Args:
-            message: the message posted by the time_display class for this special case
-        """
-        exercise_id = message.exercicse_id
-        if exercise_id != "last_exercise":
-            next_exercise = "exercise{}".format(self.extract_integers(exercise_id) + 1)
-            try:
-                self.query_one(f"#{message.set_id}").query_one("#{}".format(next_exercise), stopwatch).start_stopwatch()
-            except Exception:
-                self.query_one(f"#{message.set_id}").query_one("#last_exercise", stopwatch).start_stopwatch()
-    
-    def extract_integers(self, string):
-        import re
-        integers = re.findall(r'\d+', string)
-        return int("".join([i for i in integers]))
-
-    def on_button_pressed(self, event: Button.Pressed):
-        button_id = event.button.id
-        if button_id == "return_to_home":
-            pomodoro.show_tab_by_tabpane_id("home")
-     
 class pomodoroApp(App):
     CSS_PATH = "pomodoro.tcss"
     Progression_cols = ["day", "training title", "sets trained", "exercises trained"]
@@ -185,10 +195,6 @@ class pomodoroApp(App):
                         yield Button("start_training", id="train_button")
                         yield Button("progression", id="progression")
 
-    def on_time_display_current_progress_completed(self, message: time_display.CurrentProgressCompleted):
-        """bell a sound when the progress of a time_display is completed"""
-        # TODO: make a better sound, this one sucks
-        self.bell()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """ the handler for the pressing of a button"""

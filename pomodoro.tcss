@@ -86,3 +86,14 @@ time_display {
     margin: 1;
     width: 25%;
 }
+
+Waiting {
+    background: $boost;
+    height: 5;
+    content-align: center middle;
+    text-opacity: 60%;
+}
+
+Waiting #progress_bar {
+    margin: 1;
+}
