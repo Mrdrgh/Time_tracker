@@ -13,7 +13,8 @@ from textual.widget import Widget
 from textual.screen import Screen
 from textual.message import Message
 from stopwatch_textual.test2 import stopwatch, time_display
-import pyglet, webbrowser
+import pyglet, webbrowser, json
+from datetime import datetime
 
 
 class Waiting(Static):
@@ -116,6 +117,9 @@ class TrainScreen(Screen):
 
     def action_quit(self):
         pomodoroApp.pop_screen(self=pomodoro)
+        # delete the last element of the input dictionnary
+        # so that the json doesn't save it into the progression file
+        del pomodoro.input_dictionnary[-1]
 
     def on_time_display_all_progress_completed(self, message: time_display.AllProgressCompleted):
         """handle when the timedisplay completes"""
@@ -126,6 +130,17 @@ class TrainScreen(Screen):
             self.query_one("#{}".format(message.set_id)).query_one("#next_set").remove_class("hidden")
         else:
             self.query_one("#{}".format(message.set_id)).query_one("#return_to_home").remove_class("hidden")
+            # save the progression into the json file each
+            # time we complete all the sets and exercises
+            # also we add the current date and time so that when
+            # populate the table in the progression we see the date
+            # this training took place
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            pomodoroApp.input_dictionnary[-1]["day"] = current_time.split(" ")[0]
+            pomodoroApp.input_dictionnary[-1]["time"] = current_time.split(" ")[1]
+            with open("progression.json", "a") as file:
+                json.dump(pomodoro.input_dictionnary[-1], file)
+                file.write('\n')
         self.scroll_end()
         
     
@@ -189,9 +204,8 @@ class pomodoroApp(App):
                 with Center(id="about_misc"):
                     yield Button("source code", id="source_code")
                     yield Button("Home", id="return_to_home")
-                yield DataTable()
-                with Static(id="progression_data"):
-                    yield DataTable(id="progression_table")
+            with TabPane("progression", id="progression"):
+                yield DataTable(id="progression_table")
             with TabPane("home", id="home"):
                 with Static(id="input_div"):
                     yield self.training_title
@@ -226,6 +240,9 @@ class pomodoroApp(App):
             self.show_tab_by_tabpane_id("home")
         elif button_id == "source_code":
             webbrowser.open("https://github.com/Mrdrgh/Time_tracker")
+        elif button_id == "progression":
+            self.load_progression_data()
+            self.show_tab_by_tabpane_id("progression")
 
     def show_tab_by_tabpane_id(self, tabpane_id):
         """swith to a tab"""
@@ -263,6 +280,33 @@ class pomodoroApp(App):
         return self.input_dictionnary[-1]
 
 
+    def load_progression_data(self):
+        try:
+            with open("progression.json", "r") as file:
+                data = []
+                for line in file:
+                    entry = json.loads(line)
+                    entry["day"] = entry.get("day", "")  # Add the "day" key if not present
+                    entry["time"] = entry.get("time", "")  # Add the "time" key if not present
+                    data.append(entry)
+                
+                table = self.query_one("#progression_table")
+                table.clear()
+                table.add_columns("Day", "Time", "Title", "Number of Sets", "Number of Exercises", "Time per Exercise", "Rest Time Between Exercises", "Rest Time Between Sets")
+                
+                for entry in data:
+                    table.add_row(
+                        entry["day"],
+                        entry["time"],
+                        entry["title"],
+                        str(entry["nbr_sets"]),
+                        str(entry["nbr_exercises"]),
+                        str(entry["time_per_exercise"]),
+                        str(entry["rest_time_between_exercises"]),
+                        str(entry["rest_time_between_sets"])
+                    )
+        except FileNotFoundError:
+            pass  # Handle the case when the file doesn't exist yet
 
 if __name__ == "__main__":
     pomodoro = pomodoroApp()

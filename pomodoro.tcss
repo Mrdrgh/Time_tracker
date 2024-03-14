@@ -108,3 +108,8 @@ Waiting {
 Waiting #progress_bar {
     margin: 1;
 }
+
+Datatable {
+    width: 100%;
+    height: 100%;
+}
