@@ -104,6 +104,10 @@ class time_display(Static):
         self.update(f"{self.time_remaining:02.2f}")
     def start(self):
         """start the timedisplay widget of the stopwatch"""
+        import pyglet
+        self.scroll_visible(top=True)
+        sound = pyglet.resource.media('ping.mp3')
+        sound.play()
         if self.progress_bar.percentage == 1:
             self.progress_bar.progress = 0
         self.update_timer.resume()

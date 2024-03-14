@@ -13,14 +13,12 @@ from textual.widget import Widget
 from textual.screen import Screen
 from textual.message import Message
 from stopwatch_textual.test2 import stopwatch, time_display
-import webbrowser
-import pyglet
+import pyglet, webbrowser
 
 
 class Waiting(Static):
 
     time_remaining = reactive(30.0)
-
 
     
     class RestComplete(Message):
@@ -128,6 +126,8 @@ class TrainScreen(Screen):
             self.query_one("#{}".format(message.set_id)).query_one("#next_set").remove_class("hidden")
         else:
             self.query_one("#{}".format(message.set_id)).query_one("#return_to_home").remove_class("hidden")
+        self.scroll_end()
+        
     
     def on_time_display_current_progress_completed(self, message: time_display.CurrentProgressCompleted):
         """handle when a time display completes its progression
@@ -158,6 +158,7 @@ class TrainScreen(Screen):
         if button_id == "return_to_home":
             pomodoroApp.pop_screen(self=pomodoro)
         elif button_id == "next_set":
+            self.scroll_home()
             set_id = event.button.parent.parent.id
             self.switch_to_tabpane_by_id(f"set{self.extract_integers(set_id) + 1}")
 
@@ -188,6 +189,7 @@ class pomodoroApp(App):
                 with Center(id="about_misc"):
                     yield Button("source code", id="source_code")
                     yield Button("Home", id="return_to_home")
+                yield DataTable()
                 with Static(id="progression_data"):
                     yield DataTable(id="progression_table")
             with TabPane("home", id="home"):
@@ -228,18 +230,6 @@ class pomodoroApp(App):
     def show_tab_by_tabpane_id(self, tabpane_id):
         """swith to a tab"""
         self.query_one("#home_tabbed_content").active = tabpane_id
-
-    def add_pane(self):
-        """ add a pane and return it's id
-        Args:
-            self: the big mamaaaa hhh
-        Return: the pane id
-        """
-        tabbed_content = self.query_one(TabbedContent)
-        pane_id = f"set{tabbed_content.tab_count + 1}"
-        pane = TabPane(f"set {tabbed_content.tab_count + 1}", id=pane_id)
-        tabbed_content.add_pane(pane)
-        return pane_id
 
     def reset_input_value(self):
         self.training_title.clear()
