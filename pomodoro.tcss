@@ -114,7 +114,16 @@ Waiting #progress_bar {
     background: $boost;
 }
 
-#refresh {
+#progression_container Horizontal{
+    content-align: center middle;
+}
+
+#refresh{
+    margin: 1;
+    height: 3;
+}
+
+#screenshot {
     margin: 1;
     height: 3;
 }

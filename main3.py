@@ -208,10 +208,12 @@ class pomodoroApp(App):
             with TabPane("progression", id="progression"):
                 with ScrollableContainer(id="progression_container"):
                     yield DataTable(id="progression_table", zebra_stripes=True)
-                    with Center():
-                        button = Button("Refresh", id="refresh")
-                        button.tooltip = "for when you don't press on the progression button in the home tab and simply press on the progression tab"
-                        yield button 
+                    with Horizontal():
+                            button = Button("Refresh", id="refresh")
+                            button.tooltip = "for when you don't press on the progression button in the home tab and simply press on the progression tab"
+                            yield button
+                            screenshot_button = Button("Screenshot", id="screenshot")
+                            yield screenshot_button
             with TabPane("home", id="home"):
                 with Static(id="input_div"):
                     yield self.training_title
@@ -251,6 +253,9 @@ class pomodoroApp(App):
             self.show_tab_by_tabpane_id("progression")
         elif button_id == "refresh":
             self.load_progression_data()
+        elif button_id == "screenshot":
+            self.save_screenshot(filename="progression.svg")
+            webbrowser.open("C:\\Users\\mrdrg\\OneDrive\\Bureau\\infos_data\\semestre1\\l7nech\\pomodoro_gui\\github\\Time_tracker\\progression.svg")
 
     def show_tab_by_tabpane_id(self, tabpane_id):
         """swith to a tab"""
