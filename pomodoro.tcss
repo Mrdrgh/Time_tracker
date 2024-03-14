@@ -108,9 +108,13 @@ Waiting {
 Waiting #progress_bar {
     margin: 1;
 }
-#progression {
-    content-align: center middle;
-}
+
 #progression_table {
-    content-align: center middle;
+    height: 70%;
+    background: $boost;
+}
+
+#refresh {
+    margin: 1;
+    height: 3;
 }

@@ -206,7 +206,12 @@ class pomodoroApp(App):
                     yield Button("source code", id="source_code")
                     yield Button("Home", id="return_to_home")
             with TabPane("progression", id="progression"):
-                yield DataTable(id="progression_table")
+                with ScrollableContainer(id="progression_container"):
+                    yield DataTable(id="progression_table", zebra_stripes=True)
+                    with Center():
+                        button = Button("Refresh", id="refresh")
+                        button.tooltip = "for when you don't press on the progression button in the home tab and simply press on the progression tab"
+                        yield button 
             with TabPane("home", id="home"):
                 with Static(id="input_div"):
                     yield self.training_title
@@ -244,6 +249,8 @@ class pomodoroApp(App):
         elif button_id == "progression_button":
             self.load_progression_data()
             self.show_tab_by_tabpane_id("progression")
+        elif button_id == "refresh":
+            self.load_progression_data()
 
     def show_tab_by_tabpane_id(self, tabpane_id):
         """swith to a tab"""
@@ -301,12 +308,14 @@ class pomodoroApp(App):
                     entry["total_time"] = f"{hours:02d}h:{minutes:02d}m:{seconds:02d}s"
                     
                     data.append(entry)
-                
-                table = self.query_one("#progression_table")
-                table.clear()
+
+                table = self.query_one("#progression_table", DataTable)
+                table.clear(columns=True)
                 table.add_columns("Day", "Time", "Total Time Trained", "Title", "Number of Sets", "Number of Exercises",
                                   "Time per Exercise", "Rest Time Between Exercises", "Rest Time Between Sets")
                 
+                
+                data.reverse()
                 for entry in data:
                     table.add_row(
                         entry["day"],
