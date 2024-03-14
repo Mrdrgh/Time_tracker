@@ -192,7 +192,7 @@ class pomodoroApp(App):
     input_dictionnary = [{}]
 
     def compose(self):
-        self.training_title = Input(placeholder="e.g leg day", type="text", max_length=7, id="title")
+        self.training_title = Input(placeholder="e.g leg day", type="text", max_length=15, id="title")
         self.nbr_sets = Input(placeholder="number of sets", type="integer", id="nbr_sets")
         self.rest_time_between_sets = Input(placeholder="rest time between sets", type="number", id="rest_time_between_sets")
         self.nbr_exercises = Input(placeholder="number of exercises", type="integer", id="nbr_exercises")
@@ -287,18 +287,31 @@ class pomodoroApp(App):
                 data = []
                 for line in file:
                     entry = json.loads(line)
-                    entry["day"] = entry.get("day", "")  # Add the "day" key if not present
-                    entry["time"] = entry.get("time", "")  # Add the "time" key if not present
+                    entry["day"] = entry.get("day", "")
+                    entry["time"] = entry.get("time", "")
+                    
+                    # Calculate the total time trained in seconds
+                    total_time_seconds = int(entry["nbr_sets"]) * int(entry["nbr_exercises"]) * int(entry["time_per_exercise"])
+                    
+                    # Convert the total time to hours, minutes, and seconds
+                    hours, remainder = divmod(total_time_seconds, 3600)
+                    minutes, seconds = divmod(remainder, 60)
+                    
+                    # Format the total time as "HH:MM:SS"
+                    entry["total_time"] = f"{hours:02d}h:{minutes:02d}m:{seconds:02d}s"
+                    
                     data.append(entry)
                 
-                table = self.query_one("#progression_table", DataTable)
-                table.clear(columns=True)
-                table.add_columns("Day", "Time", "Title", "Number of Sets", "Number of Exercises", "Time per Exercise", "Rest Time Between Exercises", "Rest Time Between Sets")
+                table = self.query_one("#progression_table")
+                table.clear()
+                table.add_columns("Day", "Time", "Total Time Trained", "Title", "Number of Sets", "Number of Exercises",
+                                  "Time per Exercise", "Rest Time Between Exercises", "Rest Time Between Sets")
                 
                 for entry in data:
                     table.add_row(
                         entry["day"],
                         entry["time"],
+                        entry["total_time"],
                         entry["title"],
                         str(entry["nbr_sets"]),
                         str(entry["nbr_exercises"]),

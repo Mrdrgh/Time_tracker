@@ -111,3 +111,6 @@ Waiting #progress_bar {
 #progression {
     content-align: center middle;
 }
+#progression_table {
+    content-align: center middle;
+}
