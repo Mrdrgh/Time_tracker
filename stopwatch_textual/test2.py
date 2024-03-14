@@ -45,6 +45,7 @@ class time_display(Static):
     #     self.time_elapsed = self.accum_time + ( monotonic() - self.start_time)
 
     time_remaining = reactive(30.0)
+    allProgressCompleted = False
 
     class AllProgressCompleted(Message):
         def __init__(self, set_id) -> None:
@@ -84,7 +85,8 @@ class time_display(Static):
 
 
     def handle_all_exercises_complete(self):
-        if self.id == "last_time_d":
+        if self.id == "last_time_d" and not self.allProgressCompleted:
+            self.allProgressCompleted = True
             self.notify("set complete")
             # TODO: post a message to the parent(stopwatch)
             self.post_message(self.AllProgressCompleted(self.parent.parent.id))

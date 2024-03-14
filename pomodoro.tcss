@@ -65,13 +65,13 @@ time_display {
     width: 20%;
 }
 
-#progression {
+#progression_button {
     background: $secondary-background;
     margin: 1;
     width: 20%;
 }
 
-#progression:hover{
+#progression_button:hover{
     background: $secondary-background-darken-2;
     width: 20%;
 }
@@ -108,8 +108,6 @@ Waiting {
 Waiting #progress_bar {
     margin: 1;
 }
-
-Datatable {
-    width: 100%;
-    height: 100%;
+#progression {
+    content-align: center middle;
 }

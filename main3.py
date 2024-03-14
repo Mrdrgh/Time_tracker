@@ -80,6 +80,7 @@ class Waiting(Static):
 
 class TrainScreen(Screen):
     BINDINGS = [("q", "quit", "Quit training")]
+
     def __init__(self):
         super().__init__()
         self.title = pomodoroApp.input_dictionnary[-1]["title"]
@@ -216,7 +217,7 @@ class pomodoroApp(App):
                     yield self.rest_time_between_exercises
                     with Center():
                         yield Button("start_training", id="train_button")
-                        yield Button("progression", id="progression")
+                        yield Button("progression", id="progression_button")
                         yield Button("about", id="about_button")
 
 
@@ -240,7 +241,7 @@ class pomodoroApp(App):
             self.show_tab_by_tabpane_id("home")
         elif button_id == "source_code":
             webbrowser.open("https://github.com/Mrdrgh/Time_tracker")
-        elif button_id == "progression":
+        elif button_id == "progression_button":
             self.load_progression_data()
             self.show_tab_by_tabpane_id("progression")
 
@@ -290,8 +291,8 @@ class pomodoroApp(App):
                     entry["time"] = entry.get("time", "")  # Add the "time" key if not present
                     data.append(entry)
                 
-                table = self.query_one("#progression_table")
-                table.clear()
+                table = self.query_one("#progression_table", DataTable)
+                table.clear(columns=True)
                 table.add_columns("Day", "Time", "Title", "Number of Sets", "Number of Exercises", "Time per Exercise", "Rest Time Between Exercises", "Rest Time Between Sets")
                 
                 for entry in data:
