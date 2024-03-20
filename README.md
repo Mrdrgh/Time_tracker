@@ -9,15 +9,15 @@ The **TimeTracker** app is a text-based user interface (TUI) Python application 
 1. **Prerequisites** (only if you want to run it using python):
     - Ensure you have Python installed.
     - Install the required frameworks:
-        - **Textual**: A Rapid Application Development framework for Python. It enables building sophisticated user interfaces with a simple Python API. You can run Textual apps in both the terminal and a web browser. Visit the Textual Documentation for more details, install it using `pip install textual`.
-        - **Pyglet**: A Python library for creating games and multimedia applications. Install it using `pip install pyglet`.
+        - **Textual**: A Rapid Application Development framework for Python. It enables building sophisticated user interfaces with a simple Python API. You can run Textual apps in both the terminal and a web browser. Visit the Textual Documentation for more details, install it using ```pip install textual```.
+        - **Pyglet**: A Python library for creating games and multimedia applications. Install it using ```pip install pyglet```.
 
 2. **Download and Run**:
     - Clone the repository or download the source code.
     - Navigate to the project directory.
     - Run the app using either of the following methods:
-        - **Console**: Execute `python main.py` in the terminal.
-        - **Executable (Windows)**: Use the provided `app.exe` generated with PyInstaller. This standalone executable includes all necessary files (e.g., `progression.json`, `start.wav`, `ping.wav`).
+        - **Console**: Execute ```python main3.py``` in the terminal.
+        - **Executable (Windows)**: Use the provided `main3.exe` generated with PyInstaller. This standalone executable includes all necessary files (e.g., `progression.json`, `start.wav`, `ping.wav` ,...).
 
 ## Usage
 
@@ -40,4 +40,4 @@ The **TimeTracker** app is a text-based user interface (TUI) Python application 
 
 Feel free to reach out if you have any questions or need further assistance!
 
-THANKS TO THE <a href="#">TEXTUAL FRAMEWORK</a> TEAM!!
+THANKS TO THE <a href="https://textual.textualize.io/">TEXTUAL FRAMEWORK</a> TEAM!!❤️✨
