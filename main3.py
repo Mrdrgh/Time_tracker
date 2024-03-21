@@ -1,15 +1,13 @@
 from time import monotonic
 from textual import on
 from textual.app import App, ComposeResult
-from textual.events import Mount
 from textual.reactive import reactive
 from textual.containers import ScrollableContainer
 from textual.widgets import Button, Header, Footer, Static
 from textual.widgets import Input, Label, ProgressBar
 from textual.app import App, ComposeResult
-from textual.containers import Vertical, Horizontal, Center
-from textual.widgets import TabbedContent, TabPane, DataTable
-from textual.widget import Widget
+from textual.containers import Center
+from textual.widgets import TabbedContent, TabPane, DataTable, MarkdownViewer
 from textual.screen import Screen
 from textual.message import Message
 import pyglet, webbrowser, json
@@ -101,7 +99,6 @@ class time_display(Static):
 
     def watch_time_remaining(self):
         if self.time_remaining <= 0:
-            self.notify(message="exercise complete\nprogression updated", timeout=2)
             self.stop()
             print(self.id)
             self.post_message(self.CurrentProgressCompleted(self.parent.id,
@@ -253,12 +250,12 @@ class TrainScreen(Screen):
 
     def __init__(self):
         super().__init__()
-        self.title = pomodoroApp.input_dictionnary[-1]["title"]
-        self.number_of_sets = int(pomodoroApp.input_dictionnary[-1]["nbr_sets"])
-        self.rest_time_between_sets = int(pomodoroApp.input_dictionnary[-1]["rest_time_between_sets"])
-        self.number_of_exercices = int(pomodoroApp.input_dictionnary[-1]["nbr_exercises"])
-        self.time_per_exercise = int(pomodoroApp.input_dictionnary[-1]["time_per_exercise"])
-        self.rest_time_between_exercises = int(pomodoroApp.input_dictionnary[-1]["rest_time_between_exercises"])
+        self.title = TimeTracker.input_dictionnary[-1]["title"]
+        self.number_of_sets = int(TimeTracker.input_dictionnary[-1]["nbr_sets"])
+        self.rest_time_between_sets = int(TimeTracker.input_dictionnary[-1]["rest_time_between_sets"])
+        self.number_of_exercices = int(TimeTracker.input_dictionnary[-1]["nbr_exercises"])
+        self.time_per_exercise = int(TimeTracker.input_dictionnary[-1]["time_per_exercise"])
+        self.rest_time_between_exercises = int(TimeTracker.input_dictionnary[-1]["rest_time_between_exercises"])
 
     def compose(self):
         yield Footer()
@@ -287,7 +284,7 @@ class TrainScreen(Screen):
                         yield pane
 
     def action_quit(self):
-        pomodoroApp.pop_screen(self=pomodoro)
+        TimeTracker.pop_screen(self=pomodoro)
         # delete the last element of the input dictionnary
         # so that the json doesn't save it into the progression file
         del pomodoro.input_dictionnary[-1]
@@ -307,8 +304,8 @@ class TrainScreen(Screen):
             # populate the table in the progression we see the date
             # this training took place
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            pomodoroApp.input_dictionnary[-1]["day"] = current_time.split(" ")[0]
-            pomodoroApp.input_dictionnary[-1]["time"] = current_time.split(" ")[1]
+            TimeTracker.input_dictionnary[-1]["day"] = current_time.split(" ")[0]
+            TimeTracker.input_dictionnary[-1]["time"] = current_time.split(" ")[1]
             with open("progression.json", "a") as file:
                 json.dump(pomodoro.input_dictionnary[-1], file)
                 file.write('\n')
@@ -342,7 +339,7 @@ class TrainScreen(Screen):
     def on_button_pressed(self, event: Button.Pressed):
         button_id = event.button.id
         if button_id == "return_to_home":
-            pomodoroApp.pop_screen(self=pomodoro)
+            TimeTracker.pop_screen(self=pomodoro)
         elif button_id == "next_set":
             self.scroll_home()
             set_id = event.button.parent.parent.id
@@ -355,7 +352,7 @@ class TrainScreen(Screen):
 
 
 
-class pomodoroApp(App):
+class TimeTracker(App):
     CSS = """
 stopwatch {
     layout: horizontal;
@@ -454,7 +451,7 @@ time_display {
 #about_misc * {
     padding: 1;
     margin: 1;
-    width: 25%;
+    width: 15%;
 }
 
 Waiting {
@@ -491,27 +488,28 @@ Waiting #progress_bar {
     number_of_tabs = 0
     input_dictionnary = [{}]
 
+
     def compose(self):
-        self.training_title = Input(placeholder="e.g leg day", type="text", max_length=15, id="title")
+        self.training_title = Input(placeholder="training title eg: leg day", type="text", max_length=15, id="title")
         self.nbr_sets = Input(placeholder="number of sets", type="integer", id="nbr_sets")
         self.rest_time_between_sets = Input(placeholder="rest time between sets", type="number", id="rest_time_between_sets")
         self.nbr_exercises = Input(placeholder="number of exercises", type="integer", id="nbr_exercises")
         self.time_per_exercise = Input(placeholder="time per exercise", type="integer", id="time_per_exercise")
         self.rest_time_between_exercises = Input(placeholder="rest time between exercises", type="number", id="rest_time_between_exercises")
 
+        
         yield Header(show_clock=True)
         with TabbedContent(initial="home", id="home_tabbed_content"):
             with TabPane("about", id="about"):
                 with Center(id="about_misc"):
                     yield Button("source code", id="source_code")
                     yield Button("Home", id="return_to_home")
+                    yield Button("light mode", id="theme")
+                yield MarkdownViewer(self.README, show_table_of_contents=True)
             with TabPane("progression", id="progression"):
                 with ScrollableContainer(id="progression_container"):
                     yield DataTable(id="progression_table", zebra_stripes=True)
-                    with Horizontal():
-                            button = Button("Refresh", id="refresh")
-                            button.tooltip = "for when you don't press on the progression button in the home tab and simply press on the progression tab"
-                            yield button
+                    with Center():
                             screenshot_button = Button("Screenshot", id="screenshot")
                             yield screenshot_button
             with TabPane("home", id="home"):
@@ -528,6 +526,10 @@ Waiting #progress_bar {
                         yield Button("about", id="about_button")
 
 
+    def on_tabbed_content_tab_activated(self, event: TabbedContent.TabActivated):
+        if event.tab.id == "--content-tab-progression":
+            self.load_progression_data()
+    
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """ the handler for the pressing of a button"""
         button_id = event.button.id
@@ -549,13 +551,17 @@ Waiting #progress_bar {
         elif button_id == "source_code":
             webbrowser.open("https://github.com/Mrdrgh/Time_tracker")
         elif button_id == "progression_button":
+            print("switched to progression via button")
             self.load_progression_data()
             self.show_tab_by_tabpane_id("progression")
         elif button_id == "refresh":
             self.load_progression_data()
         elif button_id == "screenshot":
             self.save_screenshot(filename="progression.svg")
-            webbrowser.open("C:\\Users\\mrdrg\\OneDrive\\Bureau\\infos_data\\semestre1\\l7nech\\pomodoro_gui\\github\\Time_tracker\\progression.svg")
+            self.notify(message="you can open it using a browser", title="SVG saved")
+        elif button_id == "theme":
+            self.dark = not self.dark
+            self.query_one("#theme").label = "{} mode".format("light" if self.dark else "dark")
 
     def show_tab_by_tabpane_id(self, tabpane_id):
         """swith to a tab"""
@@ -635,9 +641,56 @@ Waiting #progress_bar {
                     )
         except FileNotFoundError:
             pass  # Handle the case when the file doesn't exist yet
+    
+    README = """
+# TimeTracker App Documentation
 
+## Overview
+
+The **TimeTracker** app is a text-based user interface (TUI) Python application built on the **Textual** framework. It allows users to track their training sessions or any other activities. Users can input details such as the training title, number of sets, number of exercises per set, and the time per exercise in seconds. The app then saves this information to a `progression.json` file.
+
+## Installation
+
+1. **Prerequisites** (only if you want to run it using python, otherwise just run the .exe file):
+    - Ensure you have Python installed.
+    - Install the required frameworks:
+        - **Textual**: A Rapid Application Development framework for Python. It enables building sophisticated user interfaces with a simple Python API. You can run Textual apps in both the terminal and a web browser. Visit the <a href="https://textual.textualize.io/guide/">Textual Documentation</a> for more details, install it using ```pip install textual```.
+        - **Pyglet**: A Python library for creating games and multimedia applications. Install it using ```pip install pyglet```.
+
+2. **Download and Run**:
+    - Clone the repository or download the source code.
+    - Navigate to the project directory.
+    - Run the app using either of the following methods:
+        - **Console**: Execute ```python main3.py``` in the terminal.
+        - **Executable (Windows)**: Use the provided `main3.exe` generated with PyInstaller. This standalone executable includes all necessary files (e.g., `progression.json`, `start.wav`, `ping.wav` ,...).
+
+## Usage
+
+1. **Input Details**:
+    - Launch the app.
+    - Enter the training title, number of sets, number of exercises per set, and exercise duration (in seconds).
+
+2. **Progression Tracking**:
+    - Completed activities are saved to the `progression.json` file.
+    - To view your progression, use the `DataTable` class from the `Textual.widgets` package.
+
+3. **Screenshots**:
+    - Take a screenshot of your progression table.
+    - Save it as `progression.svg`.
+    - Open the SVG file in a web browser to visualize your progress!.
+
+## Authors
+
+- **Darghal Mohammed** <mrdrgh2003@gmail.com>
+- **achraf menach**
+
+Feel free to reach out if you have any questions or need further assistance!
+
+THANKS TO THE <a href="https://textual.textualize.io/">TEXTUAL FRAMEWORK</a> TEAM!!❤️✨
+
+"""
 
 
 if __name__ == "__main__":
-    pomodoro = pomodoroApp()
+    pomodoro = TimeTracker()
     pomodoro.run()
