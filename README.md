@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **TimeTracker** app is a text-based user interface (TUI) Python application built on the **Textual** framework. It allows users to track their training sessions or any other activities. Users can input details such as the training title, number of sets, number of exercises per set, and the time per exercise in seconds. The app then saves this information to a `progression.json` file.
+The **TimeTracker** app is a text-based user interface (TUI) Python application built on the **Textual** framework. It allows users to track their training sessions or any other activities. Users can input details such as the training title, number of sets, number of exercises per set, and the time per exercise in seconds. The app then saves this information to a `./src/progression.json` file.
 
 ## Installation
 
@@ -17,7 +17,7 @@ The **TimeTracker** app is a text-based user interface (TUI) Python application 
     - Navigate to the project directory.
     - Run the app using either of the following methods:
         - **Console**: Execute ```python main3.py``` in the terminal.
-        - **Executable (Windows)**: Use the provided `main3.exe` generated with PyInstaller. This standalone executable includes all necessary files (e.g., `progression.json`, `start.wav`, `ping.wav` ,...).
+        - **Executable (Windows)**: Use the provided `main3.exe` generated with PyInstaller. This standalone executable includes all necessary files (e.g., `./src/progression.json`, `src/src/start.wav`, `src/ping.mp3.wav` ,...).
 
 ## Usage
 
@@ -26,7 +26,7 @@ The **TimeTracker** app is a text-based user interface (TUI) Python application 
     - Enter the training title, number of sets, number of exercises per set, and exercise duration (in seconds).
 
 2. **Progression Tracking**:
-    - Completed activities are saved to the `progression.json` file.
+    - Completed activities are saved to the `./src/progression.json` file.
     - To view your progression, use the `DataTable` class from the `Textual.widgets` package.
 
 3. **Screenshots**:
