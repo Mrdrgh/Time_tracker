@@ -1,7 +1,7 @@
 # TimeTracker App Documentation
 
 ## Overview
-
+<img src="TimeTracker/src/timer.ico">
 The **TimeTracker** app is a text-based user interface (TUI) Python application built on the **Textual** framework. It allows users to track their training sessions or any other activities. Users can input details such as the training title, number of sets, number of exercises per set, and the time per exercise in seconds. The app then saves this information to a `./src/progression.json` file.
 
 ## Installation
